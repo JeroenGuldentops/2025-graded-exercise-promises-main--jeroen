@@ -26,7 +26,7 @@ function displayTodos() {
   todoList.innerHTML = todos
     .map((todo) => {
       return `
-    <label class="todo" data-id=${todo.id}">
+    <label class="todo" data-id="${todo.id}">
             <input class="todo__state" type="checkbox" />
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
                <use xlink:href="#todo__line" class="todo__line"></use>
@@ -43,6 +43,13 @@ function displayTodos() {
     })
     .reverse()
     .join("");
+
+  // document.querySelectorAll(".todo__state").forEach((checkbox) => {
+  //   const id = checkbox.parentNode.dataset.id;
+  //   if (todos[id - 1].completed === true) {
+  //     checkbox.checked = true;
+  //   }
+  // });
 }
 
 function handleTodoClicked(id) {
@@ -69,9 +76,21 @@ function handleEditTodoClicked(id) {
 }
 
 function handleRemoveTodoClicked(id) {
-  deleteTodo(id)
-    .then((res) => todos.splice(id - 1))
+  warningBox()
+    .then(() => deleteTodo(id))
+    .then((res) => {
+      todos.splice(id - 1, 1);
+    })
     .then(() => displayTodos());
+}
+
+function warningBox() {
+  return new Promise((resolve, reject) => {
+    const warning = window.confirm("Are you sure?");
+    if (warning) {
+      resolve(true);
+    } else reject;
+  });
 }
 
 function addTodo(todoText) {
