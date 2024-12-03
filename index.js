@@ -9,6 +9,7 @@ const addTodoForm = document.querySelector("#addTodoForm");
 const todoList = document.querySelector(".todo-list");
 
 let todos = [];
+const todosHTMLElements = document.querySelectorAll(".todo");
 
 function getTodos() {
   return new Promise((resolve, reject) => {
@@ -25,7 +26,7 @@ function displayTodos() {
   todoList.innerHTML = todos
     .map((todo) => {
       return `
-    <label class="todo" data-id=${todo.id}>
+    <label class="todo" data-id=${todo.id}">
             <input class="todo__state" type="checkbox" />
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
                <use xlink:href="#todo__line" class="todo__line"></use>
@@ -34,41 +35,43 @@ function displayTodos() {
                <use xlink:href="#todo__circle" class="todo__circle"></use>
             </svg>
             <div class="todo__text">${todo.todo}</div>
-            <button class="editButton">Edit</button>
-            <button class="removeButton">Remove</button>
+            <button class="editButton" onclick="handleEditTodoClicked(${todo.id})">Edit</button>
+            <button class="removeButton" onclick="handleRemoveTodoClicked(${todo.id})">Remove</button>
     </label>
     
     `;
     })
+    .reverse()
     .join("");
+}
 
-  document.querySelectorAll(".todo").forEach((todo) => {
-    todo.addEventListener("click", () => {
-      const id = todo.dataset.id;
-      console.log(id);
-      todo.classList.toggle("completed");
-      if (!todo.classList.contains("completed")) {
-        console.log("completed");
-        markAsChecked(id)
-          .then((res) => (todos[id - 1] = res))
-          .then(() => displayTodos());
-      } else {
-        markAsUnChecked(id)
-          .then((res) => (todos[id - 1] = res))
-          .then(() => displayTodos());
-      }
-    });
-  });
+function handleTodoClicked(id) {
+  const currentTodo = document.querySelector(`.todo[data-id="${id}"]`);
+  console.log(currentTodo);
+  if (!currentTodo.classList.contains("completed")) {
+    currentTodo.classList.toggle("completed");
+    markAsChecked(id)
+      .then((res) => (todos[id - 1] = res))
+      .then(() => displayTodos());
+  } else {
+    currentTodo.classList.toggle("completed");
+    markAsUnChecked(id)
+      .then((res) => (todos[id - 1] = res))
+      .then(() => displayTodos());
+  }
+}
 
-  document.querySelectorAll(".todo .editButton").forEach((edit) => {
-    edit.addEventListener("click", (event) => {
-      const id = event.target.parentNode.dataset.id;
-      const newText = window.prompt("Edit this todo");
-      updateTodoText(id, newText)
-        .then((res) => (todos[id - 1] = res))
-        .then(() => displayTodos());
-    });
-  });
+function handleEditTodoClicked(id) {
+  const newText = window.prompt("Edit this todo");
+  updateTodoText(id, newText)
+    .then((res) => (todos[id - 1] = res))
+    .then(() => displayTodos());
+}
+
+function handleRemoveTodoClicked(id) {
+  deleteTodo(id)
+    .then((res) => todos.splice(id - 1))
+    .then(() => displayTodos());
 }
 
 function addTodo(todoText) {
@@ -161,7 +164,7 @@ addTodoForm.addEventListener("submit", (event) => {
   const todoText = event.target[0].value;
   if (todoText.length >= 3) {
     addTodo(todoText)
-      .then((res) => todos.unshift(res))
+      .then((res) => todos.push(res))
       .then(() => updateTodoList());
     document.querySelector("#addTodoText").value = "";
   } else {
